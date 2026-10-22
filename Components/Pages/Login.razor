@@ -1,0 +1,58 @@
+@page "/"
+@using PayrollDemo.Data
+@using Microsoft.EntityFrameworkCore
+@inject PayrollDbContext DbContext
+@inject NavigationManager NavManager
+@rendermode InteractiveServer
+
+<PageTitle>Login</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4 card p-4 shadow">
+        <h3 class="text-center mb-4">Payroll System</h3>
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <div class="mb-3">
+                <label>Username</label>
+                <InputText @bind-Value="loginModel.Username" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label>Password</label>
+                <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+            
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert alert-info mt-3">@message</div>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private class LoginDto
+    {
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+
+    private LoginDto loginModel = new();
+    private string message = "";
+
+    private async Task HandleLogin()
+    {
+        // Queries the SQL Server database injected via DbContext
+        var user = await DbContext.Users
+            .FirstOrDefaultAsync(u => u.Username == loginModel.Username && u.Password == loginModel.Password);
+
+        if (user != null)
+{
+    message = "Login successful!";
+    NavManager.NavigateTo("/dashboard");
+}
+else
+{
+    message = "Invalid username or password.";
+}
+    }
+}

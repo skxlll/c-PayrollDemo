@@ -1,0 +1,8 @@
+# Local Database files
+SQLDB/
+*.mdf
+*.ldf
+
+# .NET build output
+bin/
+obj/
