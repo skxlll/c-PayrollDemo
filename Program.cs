@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using PayrollDemo.Data;
+using PayrollDemo.Infrastructure.Data;
+using PayrollDemo.Core.Interfaces;
+using PayrollDemo.Application.Services;
 using PayrollDemo.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,8 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
 builder.Services.AddDbContext<PayrollDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register application services
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 

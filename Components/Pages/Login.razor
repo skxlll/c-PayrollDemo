@@ -1,7 +1,6 @@
 @page "/"
-@using PayrollDemo.Data
-@using Microsoft.EntityFrameworkCore
-@inject PayrollDbContext DbContext
+@using PayrollDemo.Core.Interfaces
+@inject IAuthService AuthService
 @inject NavigationManager NavManager
 @layout PayrollDemo.Components.Layout.LoginLayout
 @rendermode InteractiveServer
@@ -88,16 +87,15 @@
 
     private async Task HandleStepOne()
     {
-        var user = await DbContext.Users
-            .FirstOrDefaultAsync(u => u.Username == loginModel.Username && u.Password == loginModel.Password);
+        var user = await AuthService.ValidateUserAsync(loginModel.Username, loginModel.Password);
 
         if (user != null)
         {
             message = "";
-            // If credentials are valid, query the DB for the dropdowns
-            dbCompanies = await DbContext.Companies.ToListAsync();
-            dbCategories = await DbContext.Categories.ToListAsync();
-            
+            // If credentials are valid, load the dropdowns via the service
+            dbCompanies = await AuthService.GetCompaniesAsync();
+            dbCategories = await AuthService.GetCategoriesAsync();
+
             isStepTwo = true; // Switch UI to Step 2
         }
         else
