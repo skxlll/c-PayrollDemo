@@ -3,29 +3,65 @@
 @using Microsoft.EntityFrameworkCore
 @inject PayrollDbContext DbContext
 @inject NavigationManager NavManager
+@layout PayrollDemo.Components.Layout.LoginLayout
 @rendermode InteractiveServer
 
 <PageTitle>Login</PageTitle>
 
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4 card p-4 shadow">
-        <h3 class="text-center mb-4">Payroll System</h3>
-        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
-            <div class="mb-3">
-                <label>Username</label>
-                <InputText @bind-Value="loginModel.Username" class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label>Password</label>
-                <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
-            </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-4 card p-4 shadow bg-white">
+            <h3 class="text-center mb-4">Payroll System</h3>
             
+            @if (!isStepTwo)
+            {
+                <!-- Step 1: Username & Password -->
+                <EditForm Model="@loginModel" OnValidSubmit="HandleStepOne">
+                    <div class="mb-3">
+                        <label>Username</label>
+                        <InputText @bind-Value="loginModel.Username" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Password</label>
+                        <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Next</button>
+                </EditForm>
+            }
+            else
+            {
+                <!-- Step 2: Company & Category Selection -->
+                <EditForm Model="@selectionModel" OnValidSubmit="HandleStepTwo">
+                    <div class="mb-3">
+                        <label>Company</label>
+                        <InputSelect @bind-Value="selectionModel.ComCode" class="form-select">
+                            <option value="">-- Select Company --</option>
+                            @foreach (var comp in dbCompanies)
+                            {
+                                <option value="@comp.ComCode">@comp.ComName</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="mb-3">
+                        <label>Category</label>
+                        <InputSelect @bind-Value="selectionModel.CatCode" class="form-select">
+                            <option value="">-- Select Category --</option>
+                            @foreach (var cat in dbCategories)
+                            {
+                                <option value="@cat.CatCode">@cat.CatName</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Login</button>
+                    <button type="button" class="btn btn-outline-secondary w-100 mt-2" @onclick="GoBack">Back</button>
+                </EditForm>
+            }
+
             @if (!string.IsNullOrEmpty(message))
             {
                 <div class="alert alert-info mt-3">@message</div>
             }
-        </EditForm>
+        </div>
     </div>
 </div>
 
@@ -36,23 +72,55 @@
         public string Password { get; set; } = "";
     }
 
-    private LoginDto loginModel = new();
-    private string message = "";
-
-    private async Task HandleLogin()
+    private class SelectionDto
     {
-        // Queries the SQL Server database injected via DbContext
+        public string ComCode { get; set; } = "";
+        public string CatCode { get; set; } = "";
+    }
+
+    private LoginDto loginModel = new();
+    private SelectionDto selectionModel = new();
+    private string message = "";
+    private bool isStepTwo = false;
+
+    private List<Company> dbCompanies = new();
+    private List<Category> dbCategories = new();
+
+    private async Task HandleStepOne()
+    {
         var user = await DbContext.Users
             .FirstOrDefaultAsync(u => u.Username == loginModel.Username && u.Password == loginModel.Password);
 
         if (user != null)
-{
-    message = "Login successful!";
-    NavManager.NavigateTo("/dashboard");
-}
-else
-{
-    message = "Invalid username or password.";
-}
+        {
+            message = "";
+            // If credentials are valid, query the DB for the dropdowns
+            dbCompanies = await DbContext.Companies.ToListAsync();
+            dbCategories = await DbContext.Categories.ToListAsync();
+            
+            isStepTwo = true; // Switch UI to Step 2
+        }
+        else
+        {
+            message = "Invalid username or password.";
+        }
+    }
+
+    private void HandleStepTwo()
+    {
+        if (string.IsNullOrEmpty(selectionModel.ComCode) || string.IsNullOrEmpty(selectionModel.CatCode))
+        {
+            message = "Please select both a Company and a Category.";
+            return;
+        }
+
+        // At this point, the login is fully complete.
+        NavManager.NavigateTo("/dashboard");
+    }
+
+    private void GoBack()
+    {
+        isStepTwo = false;
+        message = "";
     }
 }

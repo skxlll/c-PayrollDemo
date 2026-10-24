@@ -21,6 +21,34 @@ namespace PayrollDemo.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("PayrollDemo.Data.Category", b =>
+                {
+                    b.Property<string>("CatCode")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CatName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("CatCode");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("PayrollDemo.Data.Company", b =>
+                {
+                    b.Property<string>("ComCode")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ComName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ComCode");
+
+                    b.ToTable("Companies");
+                });
+
             modelBuilder.Entity("PayrollDemo.Data.User", b =>
                 {
                     b.Property<int>("Id")
