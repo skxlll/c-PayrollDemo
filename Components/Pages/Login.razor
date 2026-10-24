@@ -1,65 +1,155 @@
 @page "/"
-@using PayrollDemo.Core.Interfaces
-@inject IAuthService AuthService
+@using PayrollDemo.Core.Entities
+@inject PayrollDemo.Core.Interfaces.IAuthService AuthService
 @inject NavigationManager NavManager
 @layout PayrollDemo.Components.Layout.LoginLayout
 @rendermode InteractiveServer
 
-<PageTitle>Login</PageTitle>
+<PageTitle>Finac | Login</PageTitle>
 
-<div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-4 card p-4 shadow bg-white">
-            <h3 class="text-center mb-4">Payroll System</h3>
-            
-            @if (!isStepTwo)
-            {
-                <!-- Step 1: Username & Password -->
-                <EditForm Model="@loginModel" OnValidSubmit="HandleStepOne">
-                    <div class="mb-3">
-                        <label>Username</label>
-                        <InputText @bind-Value="loginModel.Username" class="form-control" />
-                    </div>
-                    <div class="mb-3">
-                        <label>Password</label>
-                        <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Next</button>
-                </EditForm>
-            }
-            else
-            {
-                <!-- Step 2: Company & Category Selection -->
-                <EditForm Model="@selectionModel" OnValidSubmit="HandleStepTwo">
-                    <div class="mb-3">
-                        <label>Company</label>
-                        <InputSelect @bind-Value="selectionModel.ComCode" class="form-select">
-                            <option value="">-- Select Company --</option>
-                            @foreach (var comp in dbCompanies)
-                            {
-                                <option value="@comp.ComCode">@comp.ComName</option>
-                            }
-                        </InputSelect>
-                    </div>
-                    <div class="mb-3">
-                        <label>Category</label>
-                        <InputSelect @bind-Value="selectionModel.CatCode" class="form-select">
-                            <option value="">-- Select Category --</option>
-                            @foreach (var cat in dbCategories)
-                            {
-                                <option value="@cat.CatCode">@cat.CatName</option>
-                            }
-                        </InputSelect>
-                    </div>
-                    <button type="submit" class="btn btn-success w-100">Login</button>
-                    <button type="button" class="btn btn-outline-secondary w-100 mt-2" @onclick="GoBack">Back</button>
-                </EditForm>
-            }
+<style>
+    /* Modern UI Reset & Styles */
+    .login-wrapper {
+        background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+        min-height: 100vh;
+    }
+    .modern-card {
+        border-radius: 24px;
+        overflow: hidden;
+        max-width: 1000px;
+        width: 95%;
+        min-height: 600px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .brand-panel {
+        background: linear-gradient(135deg, #091c28, #183e54, #265f7c);
+        width: 50%;
+    }
+    .form-panel {
+        width: 50%;
+    }
+    .modern-input {
+        border-radius: 8px;
+        padding: 12px 16px;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+    }
+    .modern-input:focus {
+        background-color: #ffffff;
+        border-color: #265f7c;
+        box-shadow: 0 0 0 3px rgba(38, 95, 124, 0.1);
+        outline: none;
+    }
+    .modern-btn {
+        border-radius: 8px;
+        padding: 12px;
+        font-weight: 600;
+        background-color: #091c28;
+        border: none;
+        transition: background-color 0.2s;
+    }
+    .modern-btn:hover {
+        background-color: #265f7c;
+    }
+    /* Mobile responsiveness: Hide branding graphic on small screens */
+    @@media (max-width: 768px) {
+        .brand-panel { display: none !important; }
+        .form-panel { width: 100%; }
+    }
+</style>
 
-            @if (!string.IsNullOrEmpty(message))
-            {
-                <div class="alert alert-info mt-3">@message</div>
-            }
+<div class="login-wrapper d-flex align-items-center justify-content-center py-4">
+    <div class="modern-card d-flex bg-white">
+        
+        <!-- Left Side: Branding -->
+        <div class="brand-panel d-none d-md-flex flex-column justify-content-center p-5 text-white">
+            <div class="mb-auto">
+                <h4 class="fw-bold d-flex align-items-center gap-2">
+                    <span style="font-size: 1.5rem;">❖</span> Finac
+                </h4>
+            </div>
+            <div>
+                <h1 class="fw-bold mb-4" style="line-height: 1.2;">Autonomous<br/>Payroll<br/>Platform</h1>
+                <ul class="list-unstyled mt-4 opacity-75">
+                    <li class="mb-3 d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill bg-light text-dark">✓</span> Enterprise-grade Security
+                    </li>
+                    <li class="mb-3 d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill bg-light text-dark">✓</span> Automated Tax Compliance
+                    </li>
+                    <li class="d-flex align-items-center gap-2">
+                        <span class="badge rounded-pill bg-light text-dark">✓</span> Real-time Workforce Analytics
+                    </li>
+                </ul>
+            </div>
+            <div class="mt-auto pt-4">
+                <small class="opacity-50">© @DateTime.Now.Year Finac Inc. All rights reserved.</small>
+            </div>
+        </div>
+
+        <!-- Right Side: Interactive Form -->
+        <div class="form-panel d-flex flex-column justify-content-center p-4 p-md-5">
+            <div class="w-100 mx-auto" style="max-width: 380px;">
+                <h2 class="fw-bold mb-2">Welcome Back</h2>
+                <p class="text-muted mb-4 small">Sign in to your Finac account to continue.</p>
+
+                @if (!isStepTwo)
+                {
+                    <!-- Step 1 -->
+                    <EditForm Model="@loginModel" OnValidSubmit="HandleStepOne">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Email Address</label>
+                            <InputText @bind-Value="loginModel.Username" class="form-control modern-input" placeholder="name@company.com" />
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small text-muted d-flex justify-content-between w-100">
+                                Password
+                                <a href="#" class="text-decoration-none" style="color: #265f7c;">Forgot Password?</a>
+                            </label>
+                            <InputText @bind-Value="loginModel.Password" type="password" class="form-control modern-input" placeholder="••••••••" />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 modern-btn">Sign In</button>
+                    </EditForm>
+                }
+                else
+                {
+                    <!-- Step 2 -->
+                    <EditForm Model="@selectionModel" OnValidSubmit="HandleStepTwo">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Company Context</label>
+                            <InputSelect @bind-Value="selectionModel.ComCode" class="form-select modern-input">
+                                <option value="">-- Select Company --</option>
+                                @foreach (var comp in dbCompanies)
+                                {
+                                    <option value="@comp.ComCode">@comp.ComName</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small text-muted">Access Category</label>
+                            <InputSelect @bind-Value="selectionModel.CatCode" class="form-select modern-input">
+                                <option value="">-- Select Category --</option>
+                                @foreach (var cat in dbCategories)
+                                {
+                                    <option value="@cat.CatCode">@cat.CatName</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-light w-25 modern-input fw-semibold border" @onclick="GoBack">Back</button>
+                            <button type="submit" class="btn btn-primary flex-grow-1 modern-btn">Continue to Dashboard</button>
+                        </div>
+                    </EditForm>
+                }
+
+                @if (!string.IsNullOrEmpty(message))
+                {
+                    <div class="alert alert-danger mt-4 border-0 small fw-semibold" style="border-radius: 8px; background-color: #fee2e2; color: #991b1b;">
+                        @message
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
@@ -86,23 +176,24 @@
     private List<Category> dbCategories = new();
 
     private async Task HandleStepOne()
+{
+    // Capture the returned User object instead of a boolean
+    var user = await AuthService.ValidateUserAsync(loginModel.Username, loginModel.Password);
+
+    // If a user was found, it is valid
+    if (user != null)
     {
-        var user = await AuthService.ValidateUserAsync(loginModel.Username, loginModel.Password);
-
-        if (user != null)
-        {
-            message = "";
-            // If credentials are valid, load the dropdowns via the service
-            dbCompanies = await AuthService.GetCompaniesAsync();
-            dbCategories = await AuthService.GetCategoriesAsync();
-
-            isStepTwo = true; // Switch UI to Step 2
-        }
-        else
-        {
-            message = "Invalid username or password.";
-        }
+        message = "";
+        dbCompanies = await AuthService.GetCompaniesAsync();
+        dbCategories = await AuthService.GetCategoriesAsync(); 
+        
+        isStepTwo = true;
     }
+    else
+    {
+        message = "Invalid username or password.";
+    }
+}
 
     private void HandleStepTwo()
     {
@@ -112,7 +203,6 @@
             return;
         }
 
-        // At this point, the login is fully complete.
         NavManager.NavigateTo("/dashboard");
     }
 
