@@ -1,9 +1,42 @@
 @page "/dashboard"
 
-<PageTitle>Dashboard</PageTitle>
+<PageTitle>Finac | Dashboard</PageTitle>
 
-<div class="container mt-4">
-    <h2>Dashboard</h2>
-    <p>Welcome to the Payroll System! You have successfully logged in.</p>
-    <!-- We will build the Employee Master File here later -->
+<div class="d-flex justify-content-between align-items-end mb-4">
+    <div>
+        <h2 class="fw-bold mb-1" style="color: #091c28;">Dashboard</h2>
+        <p class="text-muted mb-0">Welcome back. Here is your payroll overview for the current period.</p>
+    </div>
+    <button class="btn btn-primary shadow-sm" style="background-color: #265f7c; border: none;">
+        + Quick Action
+    </button>
+</div>
+
+<div class="row g-4">
+    <!-- Card 1 -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="text-muted fw-semibold mb-3">Total Headcount</h6>
+            <h2 class="fw-bold mb-0">1,248</h2>
+            <small class="text-success mt-2">↑ 12 new hires this month</small>
+        </div>
+    </div>
+    
+    <!-- Card 2 -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="text-muted fw-semibold mb-3">Pending Approvals</h6>
+            <h2 class="fw-bold mb-0 text-warning">14</h2>
+            <small class="text-muted mt-2">Timesheets awaiting review</small>
+        </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+            <h6 class="text-muted fw-semibold mb-3">Next Payroll Run</h6>
+            <h2 class="fw-bold mb-0">Oct 31</h2>
+            <small class="text-muted mt-2">3 days remaining in cycle</small>
+        </div>
+    </div>
 </div>
