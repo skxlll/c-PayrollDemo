@@ -1,0 +1,41 @@
+.finac-toolbar {
+  border-color: #e9ecef !important;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #495057;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.btn-action:hover:not(:disabled) {
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.btn-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toolbar-search {
+  width: 300px;
+}
+
+.toolbar-search input {
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.toolbar-search input:focus {
+  background-color: #fff !important;
+  box-shadow: 0 0 0 3px rgba(38, 95, 124, 0.1) !important;
+}

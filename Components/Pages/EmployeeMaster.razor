@@ -1,0 +1,243 @@
+@page "/employees"
+@using PayrollDemo.Core.Entities
+@using PayrollDemo.Core.Interfaces
+@using PayrollDemo.Components.Shared
+@inject IEmployeeService EmployeeService
+@inject NavigationManager NavManager
+@rendermode InteractiveServer
+
+<PageTitle>Finac | Employee Master</PageTitle>
+
+<FinacToolbar 
+    IsEditMode="isEditMode" 
+    HasSelection="selectedEmployee != null"
+    @bind-SearchTerm="searchTerm"
+    OnAdd="HandleAdd"
+    OnEdit="HandleEdit"
+    OnDelete="HandleDelete"
+    OnSave="HandleSave"
+    OnUndo="HandleUndo"
+    OnClose="HandleClose" />
+
+<div class="row g-4" style="height: calc(100vh - 180px);">
+    
+    <!-- Left: Data List (Split View) -->
+    <div class="col-md-4 h-100">
+        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
+                <h6 class="fw-bold mb-0 text-muted">Employee Directory</h6>
+            </div>
+            <div class="card-body p-0 overflow-auto list-container">
+                @if (employees == null)
+                {
+                    <div class="p-4 text-center text-muted small">Loading...</div>
+                }
+                else
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var emp in FilteredEmployees)
+                        {
+                            <button type="button" class="list-group-item list-group-item-action p-3 border-0 @(selectedEmployee?.EmpNo == emp.EmpNo ? "active-row" : "")" 
+                                    @onclick="() => SelectEmployee(emp)" disabled="@isEditMode">
+                                <div class="fw-semibold" style="color: #091c28;">@emp.FirstName @emp.LastName</div>
+                                <div class="small text-muted">@emp.EmpNo • @emp.DepartmentCode</div>
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Employee Form -->
+    <div class="col-md-8 h-100">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 p-lg-5 overflow-auto">
+                <h5 class="fw-bold mb-4" style="color: #091c28;">
+                    @(isAdding ? "New Employee Profile" : "Employee Profile")
+                </h5>
+
+                <EditForm Model="editModel">
+                    
+                    <h6 class="text-muted fw-semibold mb-3 small text-uppercase letter-spacing-1">Basic Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">Employee Number</label>
+                            <InputText @bind-Value="editModel.EmpNo" class="form-control modern-input" disabled="@(!isAdding)" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">First Name</label>
+                            <InputText @bind-Value="editModel.FirstName" class="form-control modern-input" disabled="@(!isEditMode)" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">Last Name</label>
+                            <InputText @bind-Value="editModel.LastName" class="form-control modern-input" disabled="@(!isEditMode)" />
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">NIC Number</label>
+                            <InputText @bind-Value="editModel.NicNo" class="form-control modern-input" disabled="@(!isEditMode)" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">Department</label>
+                            <InputSelect @bind-Value="editModel.DepartmentCode" class="form-select modern-input" disabled="@(!isEditMode)">
+                                <option value="">-- Select --</option>
+                                <option value="IT">Information Technology</option>
+                                <option value="HR">Human Resources</option>
+                                <option value="FIN">Finance</option>
+                                <option value="OPS">Operations</option>
+                            </InputSelect>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25 my-4" />
+                    
+                    <h6 class="text-muted fw-semibold mb-3 small text-uppercase letter-spacing-1">Employment Details</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">Join Date</label>
+                            <InputDate @bind-Value="editModel.JoinDate" class="form-control modern-input" disabled="@(!isEditMode)" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">Resign Date</label>
+                            <InputDate @bind-Value="editModel.ResignDate" class="form-control modern-input" disabled="@(!isEditMode)" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">Basic Salary</label>
+                            <InputNumber @bind-Value="editModel.BasicSalary" class="form-control modern-input" disabled="@(!isEditMode)" />
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25 my-4" />
+
+                    <h6 class="text-muted fw-semibold mb-3 small text-uppercase letter-spacing-1">Banking Details</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">Bank Code</label>
+                            <InputText @bind-Value="editModel.BankCode" class="form-control modern-input" disabled="@(!isEditMode)" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-medium">Account Number</label>
+                            <InputText @bind-Value="editModel.BankAccountNumber" class="form-control modern-input" disabled="@(!isEditMode)" />
+                        </div>
+                    </div>
+
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Employee> employees = new();
+    private Employee? selectedEmployee;
+    private Employee editModel = new();
+    
+    private string searchTerm = "";
+    private bool isEditMode = false;
+    private bool isAdding = false;
+
+    // Local Search Filter
+    private IEnumerable<Employee> FilteredEmployees =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? employees
+            : employees.Where(e => e.EmpNo.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                                   e.FirstName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        employees = await EmployeeService.GetAllEmployeesAsync();
+        if (employees.Any())
+        {
+            SelectEmployee(employees.First());
+        }
+    }
+
+    private void SelectEmployee(Employee emp)
+    {
+        selectedEmployee = emp;
+        // Map data to the editable model so UI reflects selection
+        editModel = new Employee
+        {
+            EmpNo = emp.EmpNo,
+            FirstName = emp.FirstName,
+            LastName = emp.LastName,
+            NicNo = emp.NicNo,
+            JoinDate = emp.JoinDate,
+            ResignDate = emp.ResignDate,
+            BasicSalary = emp.BasicSalary,
+            DepartmentCode = emp.DepartmentCode,
+            BankCode = emp.BankCode,
+            BankAccountNumber = emp.BankAccountNumber
+        };
+    }
+
+    // --- Toolbar Handlers ---
+
+    private void HandleAdd()
+    {
+        isEditMode = true;
+        isAdding = true;
+        selectedEmployee = null;
+        editModel = new Employee { JoinDate = DateTime.Today }; // Clear the form
+    }
+
+    private void HandleEdit()
+    {
+        isEditMode = true;
+        isAdding = false;
+    }
+
+    private async Task HandleDelete()
+    {
+        if (selectedEmployee != null)
+        {
+            await EmployeeService.DeleteEmployeeAsync(selectedEmployee.EmpNo);
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        if (isAdding)
+        {
+            await EmployeeService.AddEmployeeAsync(editModel);
+        }
+        else
+        {
+            await EmployeeService.UpdateEmployeeAsync(editModel);
+        }
+
+        isEditMode = false;
+        isAdding = false;
+        await LoadDataAsync();
+        SelectEmployee(employees.First(e => e.EmpNo == editModel.EmpNo));
+    }
+
+    private void HandleUndo()
+    {
+        isEditMode = false;
+        isAdding = false;
+        
+        if (selectedEmployee != null)
+        {
+            SelectEmployee(selectedEmployee); // Revert to original
+        }
+        else if (employees.Any())
+        {
+            SelectEmployee(employees.First());
+        }
+    }
+
+    private void HandleClose()
+    {
+        NavManager.NavigateTo("/dashboard");
+    }
+}

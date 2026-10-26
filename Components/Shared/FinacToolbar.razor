@@ -1,0 +1,58 @@
+<div class="finac-toolbar d-flex justify-content-between align-items-center mb-4 p-3 shadow-sm rounded-4 bg-white border">
+    
+    <!-- Left: Core Actions -->
+    <div class="d-flex gap-2">
+        <button class="btn btn-action shadow-none" @onclick="OnAdd" disabled="@IsEditMode">
+            <i class="bi bi-plus-lg text-success"></i> Add New
+        </button>
+        <button class="btn btn-action shadow-none" @onclick="OnEdit" disabled="@(IsEditMode || !HasSelection)">
+            <i class="bi bi-pencil text-primary"></i> Edit
+        </button>
+        <button class="btn btn-action shadow-none" @onclick="OnDelete" disabled="@(IsEditMode || !HasSelection)">
+            <i class="bi bi-trash text-danger"></i> Delete
+        </button>
+    </div>
+
+<!-- Center: Search -->
+    <div class="toolbar-search position-relative">
+        <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+        <input type="text" class="form-control bg-light border-0 rounded-pill ps-5 shadow-none" 
+               placeholder="Search records..." 
+               disabled="@IsEditMode" 
+               value="@SearchTerm" 
+               @oninput="HandleSearchInput" />
+    </div>
+
+    <!-- Right: Save / Cancel -->
+    <div class="d-flex gap-2">
+        <button class="btn btn-action shadow-none" @onclick="OnUndo" disabled="@(!IsEditMode)">
+            <i class="bi bi-arrow-counterclockwise text-secondary"></i> Undo
+        </button>
+        <button class="btn btn-action shadow-none fw-semibold" @onclick="OnSave" disabled="@(!IsEditMode)">
+            <i class="bi bi-check2-circle text-success"></i> Save
+        </button>
+        <button class="btn btn-action shadow-none ms-2" @onclick="OnClose" disabled="@IsEditMode">
+            <i class="bi bi-x-lg text-muted"></i> Close
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsEditMode { get; set; }
+    [Parameter] public bool HasSelection { get; set; }
+    
+    [Parameter] public string SearchTerm { get; set; } = "";
+    [Parameter] public EventCallback<string> SearchTermChanged { get; set; }
+
+    [Parameter] public EventCallback OnAdd { get; set; }
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnUndo { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    private async Task HandleSearchInput(ChangeEventArgs e)
+    {
+        SearchTerm = e.Value?.ToString() ?? "";
+        await SearchTermChanged.InvokeAsync(SearchTerm);
+    }
+}

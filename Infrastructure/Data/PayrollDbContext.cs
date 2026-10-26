@@ -10,4 +10,5 @@ public class PayrollDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<Category> Categories { get; set; }
+    public DbSet<Employee> Employees { get; set; }
 }
