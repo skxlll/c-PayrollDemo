@@ -1,12 +1,14 @@
-.list-container {
+/* Apply custom scrollbar to any scrolling container on this page */
+.overflow-auto {
   scrollbar-width: thin;
   scrollbar-color: #dee2e6 transparent;
 }
 
-.list-container::-webkit-scrollbar {
+.overflow-auto::-webkit-scrollbar {
   width: 6px;
 }
-.list-container::-webkit-scrollbar-thumb {
+
+.overflow-auto::-webkit-scrollbar-thumb {
   background-color: #dee2e6;
   border-radius: 10px;
 }
