@@ -204,8 +204,12 @@
         }
     }
 
-    private async Task HandleSave()
+  private async Task HandleSave()
     {
+        // 1. Cache the Employee Number before anything gets overwritten
+        string savedEmpNo = editModel.EmpNo;
+
+        // 2. Save to database
         if (isAdding)
         {
             await EmployeeService.AddEmployeeAsync(editModel);
@@ -217,8 +221,16 @@
 
         isEditMode = false;
         isAdding = false;
+        
+        // 3. Refresh the list (this will temporarily select Employee #1 behind the scenes)
         await LoadDataAsync();
-        SelectEmployee(employees.First(e => e.EmpNo == editModel.EmpNo));
+        
+        // 4. Instantly override it by finding and selecting the cached employee
+        var employeeToSelect = employees.FirstOrDefault(e => e.EmpNo == savedEmpNo);
+        if (employeeToSelect != null)
+        {
+            SelectEmployee(employeeToSelect);
+        }
     }
 
     private void HandleUndo()
