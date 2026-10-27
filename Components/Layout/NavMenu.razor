@@ -1,11 +1,14 @@
-@rendermode InteractiveServer
+﻿@rendermode InteractiveServer
 
 <aside class="side glass">
     <div class="logo"><i>◆</i> Finac</div>
 
     <div class="grp">OVERVIEW</div>
     <NavLink class="nav" href="dashboard" Match="NavLinkMatch.All">
-        <span class="nav-label">⌂ Dashboard</span>
+       <div class="nav-label">
+            <span>⌂</span>
+            <span>Dashboard</span>
+        </div>
     </NavLink>
 
     <div class="grp">MODULES</div>
@@ -13,7 +16,10 @@
     <!-- Master Files -->
     <div>
         <button type="button" class="nav @(expandMasterFiles ? "on" : "")" @onclick="ToggleMasterFiles">
-            <span class="nav-label">▤ Master files</span>
+            <div class="nav-label">
+            <span>▤</span>
+            <span>Master files</span>
+        </div>
             <span class="chevron @(expandMasterFiles ? "rotate" : "")">▾</span>
         </button>
         @if (expandMasterFiles)
@@ -29,7 +35,10 @@
     <!-- Transactions -->
     <div>
         <button type="button" class="nav @(expandTransactions ? "on" : "")" @onclick="ToggleTransactions">
-            <span class="nav-label">⇄ Transactions</span>
+        <div class="nav-label">
+            <span>⇄</span>
+            <span>Transactions</span>
+        </div>
             <span class="chevron @(expandTransactions ? "rotate" : "")">▾</span>
         </button>
         @if (expandTransactions)
@@ -43,7 +52,11 @@
     <!-- Processes -->
     <div>
         <button type="button" class="nav @(expandProcesses ? "on" : "")" @onclick="ToggleProcesses">
-            <span class="nav-label">⚙ Processes</span>
+            
+            <div class="nav-label">
+            <span>⚙</span>
+            <span>Processes</span>
+        </div>
             <span class="chevron @(expandProcesses ? "rotate" : "")">▾</span>
         </button>
         @if (expandProcesses)
@@ -57,7 +70,11 @@
     <!-- Reports -->
     <div>
         <button type="button" class="nav @(expandReports ? "on" : "")" @onclick="ToggleReports">
-            <span class="nav-label">▥ Reports</span>
+           
+            <div class="nav-label">
+            <span>▥</span>
+            <span>Reports</span>
+        </div>
             <span class="chevron @(expandReports ? "rotate" : "")">▾</span>
         </button>
         @if (expandReports)
