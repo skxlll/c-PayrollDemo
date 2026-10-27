@@ -7,67 +7,75 @@
 
 <PageTitle>Finac | Login</PageTitle>
 
-
-<div class="login-wrapper d-flex align-items-center justify-content-center py-4">
-    <div class="modern-card d-flex bg-white">
+<div class="login-wrapper">
+    <div class="login-card glass">
         
         <!-- Left Side: Branding -->
-        <div class="brand-panel d-none d-md-flex flex-column justify-content-center p-5 text-white">
-            <div class="mb-auto">
-                <h4 class="fw-bold d-flex align-items-center gap-2">
-                    <span style="font-size: 1.5rem;">❖</span> Finac
-                </h4>
+        <div class="brand-panel">
+            <div class="brand-header">
+                <div class="logo">
+                    <i>◆</i>
+                    <span>Finac</span>
+                </div>
             </div>
-            <div>
-                <h1 class="fw-bold mb-4" style="line-height: 1.2;">Autonomous<br/>Payroll<br/>Platform</h1>
-                <ul class="list-unstyled mt-4 opacity-75">
-                    <li class="mb-3 d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill bg-light text-dark">✓</span> Enterprise-grade Security
+
+            <div class="brand-body">
+                <h1 class="brand-title">Autonomous<br/>Payroll<br/>Platform</h1>
+                
+                <ul class="feature-list">
+                    <li>
+                        <span class="feature-badge">✓</span>
+                        <span>Enterprise-grade Security</span>
                     </li>
-                    <li class="mb-3 d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill bg-light text-dark">✓</span> Automated Tax Compliance
+                    <li>
+                        <span class="feature-badge">✓</span>
+                        <span>Automated Tax Compliance</span>
                     </li>
-                    <li class="d-flex align-items-center gap-2">
-                        <span class="badge rounded-pill bg-light text-dark">✓</span> Real-time Workforce Analytics
+                    <li>
+                        <span class="feature-badge">✓</span>
+                        <span>Real-time Workforce Analytics</span>
                     </li>
                 </ul>
             </div>
-            <div class="mt-auto pt-4">
-                <small class="opacity-50">© @DateTime.Now.Year Finac Inc. All rights reserved.</small>
+
+            <div class="brand-footer">
+                <small>© @DateTime.Now.Year Finac Inc. All rights reserved.</small>
             </div>
         </div>
 
         <!-- Right Side: Interactive Form -->
-        <div class="form-panel d-flex flex-column justify-content-center p-4 p-md-5">
-            <div class="w-100 mx-auto" style="max-width: 380px;">
-                <h2 class="fw-bold mb-2">Welcome Back</h2>
-                <p class="text-muted mb-4 small">Sign in to your Finac account to continue.</p>
+        <div class="form-panel">
+            <div class="form-container">
+                <h2 class="form-title">Welcome Back</h2>
+                <p class="form-subtitle">Sign in to your Finac account to continue.</p>
 
                 @if (!isStepTwo)
                 {
                     <!-- Step 1 -->
                     <EditForm Model="@loginModel" OnValidSubmit="HandleStepOne">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">Email Address</label>
-                            <InputText @bind-Value="loginModel.Username" class="form-control modern-input" placeholder="name@company.com" />
+                        <div class="field-group">
+                            <label class="field-label">Email Address</label>
+                            <InputText @bind-Value="loginModel.Username" class="in" placeholder="name@company.com" />
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold small text-muted d-flex justify-content-between w-100">
-                                Password
-                                <a href="#" class="text-decoration-none" style="color: #265f7c;">Forgot Password?</a>
-                            </label>
-                            <InputText @bind-Value="loginModel.Password" type="password" class="form-control modern-input" placeholder="••••••••" />
+
+                        <div class="field-group">
+                            <div class="label-row">
+                                <label class="field-label">Password</label>
+                                <a href="#" class="forgot-link">Forgot Password?</a>
+                            </div>
+                            <InputText @bind-Value="loginModel.Password" type="password" class="in" placeholder="••••••••" />
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 modern-btn">Sign In</button>
+
+                        <button type="submit" class="frost-btn pri w-full">Sign In</button>
                     </EditForm>
                 }
                 else
                 {
                     <!-- Step 2 -->
                     <EditForm Model="@selectionModel" OnValidSubmit="HandleStepTwo">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold small text-muted">Company Context</label>
-                            <InputSelect @bind-Value="selectionModel.ComCode" class="form-select modern-input">
+                        <div class="field-group">
+                            <label class="field-label">Company Context</label>
+                            <InputSelect @bind-Value="selectionModel.ComCode" class="in">
                                 <option value="">-- Select Company --</option>
                                 @foreach (var comp in dbCompanies)
                                 {
@@ -75,9 +83,10 @@
                                 }
                             </InputSelect>
                         </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold small text-muted">Access Category</label>
-                            <InputSelect @bind-Value="selectionModel.CatCode" class="form-select modern-input">
+
+                        <div class="field-group">
+                            <label class="field-label">Access Category</label>
+                            <InputSelect @bind-Value="selectionModel.CatCode" class="in">
                                 <option value="">-- Select Category --</option>
                                 @foreach (var cat in dbCategories)
                                 {
@@ -85,16 +94,17 @@
                                 }
                             </InputSelect>
                         </div>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-light w-25 modern-input fw-semibold border" @onclick="GoBack">Back</button>
-                            <button type="submit" class="btn btn-primary flex-grow-1 modern-btn">Continue to Dashboard</button>
+
+                        <div class="btn-group">
+                            <button type="button" class="frost-btn back-btn" @onclick="GoBack">Back</button>
+                            <button type="submit" class="frost-btn pri flex-1">Continue to Dashboard</button>
                         </div>
                     </EditForm>
                 }
 
                 @if (!string.IsNullOrEmpty(message))
                 {
-                    <div class="alert alert-danger mt-4 border-0 small fw-semibold" style="border-radius: 8px; background-color: #fee2e2; color: #991b1b;">
+                    <div class="toast-error" role="alert">
                         @message
                     </div>
                 }

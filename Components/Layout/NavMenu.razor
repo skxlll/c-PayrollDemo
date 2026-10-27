@@ -1,99 +1,74 @@
-﻿@rendermode InteractiveServer
+@rendermode InteractiveServer
 
-<div class="finac-sidebar">
-    <div class="sidebar-header">
-        <div class="brand-logo">❖</div>
-        <span class="brand-text">Finac</span>
-    </div>
+<aside class="side glass">
+    <div class="logo"><i>◆</i> Finac</div>
 
-    <div class="sidebar-content">
-        
-        <div class="nav-section-title">OVERVIEW</div>
-        
-        <NavLink class="nav-item-main" href="dashboard" Match="NavLinkMatch.All">
-            <div class="nav-item-left">
-                <i class="bi bi-house-door"></i>
-                <span>Dashboard</span>
+    <div class="grp">OVERVIEW</div>
+    <NavLink class="nav" href="dashboard" Match="NavLinkMatch.All">
+        <span class="nav-label">⌂ Dashboard</span>
+    </NavLink>
+
+    <div class="grp">MODULES</div>
+
+    <!-- Master Files -->
+    <div>
+        <button type="button" class="nav @(expandMasterFiles ? "on" : "")" @onclick="ToggleMasterFiles">
+            <span class="nav-label">▤ Master files</span>
+            <span class="chevron @(expandMasterFiles ? "rotate" : "")">▾</span>
+        </button>
+        @if (expandMasterFiles)
+        {
+            <div class="sub">
+                <NavLink class="nav" href="employees">Employees</NavLink>
+                <NavLink class="nav" href="departments">Departments</NavLink>
+                <NavLink class="nav" href="salaryitem">Salary items</NavLink>
             </div>
-        </NavLink>
-
-        <div class="nav-section-title mt-4">MODULES</div>
-
-        <!-- Master Files -->
-        <div class="nav-group">
-            <button class="nav-item-main @(expandMasterFiles ? "active-group" : "")" @onclick="ToggleMasterFiles">
-                <div class="nav-item-left">
-                    <i class="bi bi-folder2-open"></i>
-                    <span>Master Files</span>
-                </div>
-                <i class="bi bi-chevron-down chevron @(expandMasterFiles ? "rotate" : "")"></i>
-            </button>
-            @if (expandMasterFiles)
-            {
-                <div class="nav-submenu">
-                    <NavLink class="nav-submenu-item" href="employees">Employee Master File</NavLink>
-                    <NavLink class="nav-submenu-item" href="departments">Department Master File</NavLink>
-                    <NavLink class="nav-submenu-item" href="salaryitem">Salary Item Master File</NavLink>
-                </div>
-            }
-        </div>
-
-        <!-- Transactions -->
-        <div class="nav-group">
-            <button class="nav-item-main @(expandTransactions ? "active-group" : "")" @onclick="ToggleTransactions">
-                <div class="nav-item-left">
-                    <i class="bi bi-arrow-left-right"></i>
-                    <span>Transactions</span>
-                </div>
-                <i class="bi bi-chevron-down chevron @(expandTransactions ? "rotate" : "")"></i>
-            </button>
-            @if (expandTransactions)
-            {
-                <div class="nav-submenu">
-                    <NavLink class="nav-submenu-item" href="salary-items">Salary Item Transactions</NavLink>
-                    @* <NavLink class="nav-submenu-item" href="attendance">Attendance Entry</NavLink> *@
-                </div>
-            }
-        </div>
-
-        <!-- Processes -->
-        <div class="nav-group">
-            <button class="nav-item-main @(expandProcesses ? "active-group" : "")" @onclick="ToggleProcesses">
-                <div class="nav-item-left">
-                    <i class="bi bi-cpu"></i>
-                    <span>Processes</span>
-                </div>
-                <i class="bi bi-chevron-down chevron @(expandProcesses ? "rotate" : "")"></i>
-            </button>
-            @if (expandProcesses)
-            {
-                <div class="nav-submenu">
-                    <NavLink class="nav-submenu-item" href="salary-process">Salary Process</NavLink>
-                    @* <NavLink class="nav-submenu-item" href="bank-file">Bank File Gen</NavLink> *@
-                </div>
-            }
-        </div>
-
-        <!-- Reports -->
-        <div class="nav-group">
-            <button class="nav-item-main @(expandReports ? "active-group" : "")" @onclick="ToggleReports">
-                <div class="nav-item-left">
-                    <i class="bi bi-file-earmark-bar-graph"></i>
-                    <span>Reports</span>
-                </div>
-                <i class="bi bi-chevron-down chevron @(expandReports ? "rotate" : "")"></i>
-            </button>
-            @if (expandReports)
-            {
-                <div class="nav-submenu">
-                    <NavLink class="nav-submenu-item" href="payslip-report">Payslip Report</NavLink>
-                    <NavLink class="nav-submenu-item" href="paysheet-report">Paysheet Report</NavLink>
-                </div>
-            }
-        </div>
-
+        }
     </div>
-</div>
+
+    <!-- Transactions -->
+    <div>
+        <button type="button" class="nav @(expandTransactions ? "on" : "")" @onclick="ToggleTransactions">
+            <span class="nav-label">⇄ Transactions</span>
+            <span class="chevron @(expandTransactions ? "rotate" : "")">▾</span>
+        </button>
+        @if (expandTransactions)
+        {
+            <div class="sub">
+                <NavLink class="nav" href="salary-items">Salary item transactions</NavLink>
+            </div>
+        }
+    </div>
+
+    <!-- Processes -->
+    <div>
+        <button type="button" class="nav @(expandProcesses ? "on" : "")" @onclick="ToggleProcesses">
+            <span class="nav-label">⚙ Processes</span>
+            <span class="chevron @(expandProcesses ? "rotate" : "")">▾</span>
+        </button>
+        @if (expandProcesses)
+        {
+            <div class="sub">
+                <NavLink class="nav" href="salary-process">Salary process</NavLink>
+            </div>
+        }
+    </div>
+
+    <!-- Reports -->
+    <div>
+        <button type="button" class="nav @(expandReports ? "on" : "")" @onclick="ToggleReports">
+            <span class="nav-label">▥ Reports</span>
+            <span class="chevron @(expandReports ? "rotate" : "")">▾</span>
+        </button>
+        @if (expandReports)
+        {
+            <div class="sub">
+                <NavLink class="nav" href="payslip-report">Payslip report</NavLink>
+                <NavLink class="nav" href="paysheet-report">Paysheet report</NavLink>
+            </div>
+        }
+    </div>
+</aside>
 
 @code {
     private bool expandMasterFiles = true;

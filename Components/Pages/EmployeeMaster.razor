@@ -8,126 +8,174 @@
 
 <PageTitle>Finac | Employee Master</PageTitle>
 
-<FinacToolbar 
-    IsEditMode="isEditMode" 
-    HasSelection="selectedEmployee != null"
-    @bind-SearchTerm="searchTerm"
-    OnAdd="HandleAdd"
-    OnEdit="HandleEdit"
-    OnDelete="HandleDelete"
-    OnSave="HandleSave"
-    OnUndo="HandleUndo"
-    OnClose="HandleClose" />
+<div class="bar glass">
+    <button type="button" class="frost-btn pri" @onclick="HandleAdd" disabled="@isEditMode">
+        + Add employee
+    </button>
+    <button type="button" class="frost-btn" @onclick="HandleEdit" disabled="@(isEditMode || selectedEmployee == null)">
+        ✎ Edit
+    </button>
+    <button type="button" class="frost-btn dng" @onclick="HandleDelete" disabled="@(isEditMode || selectedEmployee == null)">
+        Delete
+    </button>
 
-<div class="row g-4" style="height: calc(100vh - 180px);">
-    
+    <span class="sp"></span>
+
+    <button type="button" class="frost-btn" @onclick="HandleUndo" disabled="@(!isEditMode)">
+        Undo
+    </button>
+    <button type="button" class="frost-btn pri" @onclick="HandleSave" disabled="@(!isEditMode)">
+        Save changes
+    </button>
+    <button type="button" class="frost-btn" @onclick="HandleClose" disabled="@isEditMode">
+        Close
+    </button>
+</div>
+
+<div class="cols">
     <!-- Left: Data List (Split View) -->
-    <div class="col-md-4 h-100">
-        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-2 px-4">
-                <h6 class="fw-bold mb-0 text-muted">Employee Directory</h6>
-            </div>
-            <div class="card-body p-0 overflow-auto list-container">
-                @if (employees == null)
-                {
-                    <div class="p-4 text-center text-muted small">Loading...</div>
-                }
-                else
-                {
-                    <div class="list-group list-group-flush">
-                        @foreach (var emp in FilteredEmployees)
-                        {
-                            <button type="button" class="list-group-item list-group-item-action p-3 border-0 @(selectedEmployee?.EmpNo == emp.EmpNo ? "active-row" : "")" 
-                                    @onclick="() => SelectEmployee(emp)" disabled="@isEditMode">
-                                <div class="fw-semibold" style="color: #091c28;">@emp.FirstName @emp.LastName</div>
-                                <div class="small text-muted">@emp.EmpNo • @emp.DepartmentCode</div>
-                            </button>
-                        }
-                    </div>
-                }
-            </div>
+    <section class="list glass">
+        <h2>
+            Employees 
+            <span>@(FilteredEmployees?.Count() ?? 0) total</span>
+        </h2>
+        <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="11" cy="11" r="7"/>
+                <path d="m20 20-3.5-3.5"/>
+            </svg>
+            <input type="search" 
+                   placeholder="Search by name, number or department" 
+                   aria-label="Search employees" 
+                   value="@searchTerm"
+                   @oninput="@(e => searchTerm = e.Value?.ToString() ?? "")"
+                   disabled="@isEditMode" />
         </div>
-    </div>
+        <div class="rows anim">
+            @if (employees == null)
+            {
+                <p style="padding: 16px; color: var(--mute);">Loading...</p>
+            }
+            else if (FilteredEmployees?.Any() != true)
+            {
+                <p style="padding: 16px; color: var(--mute);">No employees match your search.</p>
+            }
+            else
+            {
+                @foreach (var (emp, index) in (FilteredEmployees ?? Enumerable.Empty<Employee>()).Select((e, i) => (e, i)))
+                {
+                    var isSelected = selectedEmployee?.EmpNo == emp.EmpNo;
+                    <button type="button" 
+                            class="emp @(isSelected ? "on" : "")" 
+                            style="--i: @index;"
+                            @onclick="() => SelectEmployee(emp)" 
+                            disabled="@isEditMode">
+                        <span class="av" style="--h: @(((emp.EmpNo?.GetHashCode() ?? 0) % 360 + 360) % 360)">
+                            @($"{emp.FirstName?.FirstOrDefault()}{emp.LastName?.FirstOrDefault()}".ToUpper())
+                        </span>
+                        <span>
+                            <b>@(string.IsNullOrWhiteSpace($"{emp.FirstName} {emp.LastName}") ? "New employee" : $"{emp.FirstName} {emp.LastName}")</b>
+                            <small>#@emp.EmpNo</small>
+                        </span>
+                        <span class="tag">@emp.DepartmentCode</span>
+                    </button>
+                }
+            }
+        </div>
+    </section>
 
-    <!-- Right: Employee Form -->
-    <div class="col-md-8 h-100">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4 p-lg-5 overflow-auto">
-                <h5 class="fw-bold mb-4" style="color: #091c28;">
-                    @(isAdding ? "New Employee Profile" : "Employee Profile")
-                </h5>
+    <!-- Right: Employee Detail -->
+    <section class="detail glass @(isEditMode ? "editing" : "")">
+        @if (selectedEmployee == null && !isAdding)
+        {
+            <p style="color: var(--mute); padding: 20px;">Select an employee or add a new one.</p>
+        }
+        else
+        {
+            <div class="head">
+                <span class="av" style="--h: @(((editModel.EmpNo?.GetHashCode() ?? 0) % 360 + 360) % 360)">
+                    @($"{editModel.FirstName?.FirstOrDefault()}{editModel.LastName?.FirstOrDefault()}".ToUpper())
+                </span>
+                <div>
+                    <h1>@(string.IsNullOrWhiteSpace($"{editModel.FirstName} {editModel.LastName}") ? (isAdding ? "New employee" : "Unnamed Employee") : $"{editModel.FirstName} {editModel.LastName}")</h1>
+                    <p>
+                        @(string.IsNullOrWhiteSpace(editModel.DepartmentCode) ? "No Dept" : editModel.DepartmentCode) · #@(string.IsNullOrWhiteSpace(editModel.EmpNo) ? "—" : editModel.EmpNo) &nbsp;
+                        <span class="status">@(editModel.ResignDate.HasValue ? "Resigned" : "Active")</span>
+                    </p>
+                </div>
+                <div class="pay">
+                    <small>Basic salary</small>
+                    <strong>@($"LKR {editModel.BasicSalary:N2}")</strong>
+                </div>
+            </div>
 
-                <EditForm Model="editModel">
-                    
-                    <h6 class="text-muted fw-semibold mb-3 small text-uppercase letter-spacing-1">Basic Information</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">Employee Number</label>
-                            <InputText @bind-Value="editModel.EmpNo" class="form-control modern-input" disabled="@(!isAdding)" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">First Name</label>
-                            <InputText @bind-Value="editModel.FirstName" class="form-control modern-input" disabled="@(!isEditMode)" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">Last Name</label>
-                            <InputText @bind-Value="editModel.LastName" class="form-control modern-input" disabled="@(!isEditMode)" />
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">NIC Number</label>
-                            <InputText @bind-Value="editModel.NicNo" class="form-control modern-input" disabled="@(!isEditMode)" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">Department</label>
-                            <InputSelect @bind-Value="editModel.DepartmentCode" class="form-select modern-input" disabled="@(!isEditMode)">
-                                <option value="">-- Select --</option>
+            <EditForm Model="editModel">
+                <div class="sec">
+                    <h3>Basic information</h3>
+                    <div class="grid">
+                        <label>
+                            Employee number
+                            <InputText @bind-Value="editModel.EmpNo" class="in" readonly="@(!isAdding)" />
+                        </label>
+                        <label>
+                            First name
+                            <InputText @bind-Value="editModel.FirstName" class="in" readonly="@(!isEditMode)" />
+                        </label>
+                        <label>
+                            Last name
+                            <InputText @bind-Value="editModel.LastName" class="in" readonly="@(!isEditMode)" />
+                        </label>
+                        <label>
+                            NIC number
+                            <InputText @bind-Value="editModel.NicNo" class="in" readonly="@(!isEditMode)" />
+                        </label>
+                        <label>
+                            Department
+                            <InputSelect @bind-Value="editModel.DepartmentCode" class="in" disabled="@(!isEditMode)">
+                                <option value="">-- Select department --</option>
                                 <option value="IT">Information Technology</option>
                                 <option value="HR">Human Resources</option>
                                 <option value="FIN">Finance</option>
                                 <option value="OPS">Operations</option>
                             </InputSelect>
-                        </div>
+                        </label>
                     </div>
+                </div>
 
-                    <hr class="text-muted opacity-25 my-4" />
-                    
-                    <h6 class="text-muted fw-semibold mb-3 small text-uppercase letter-spacing-1">Employment Details</h6>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">Join Date</label>
-                            <InputDate @bind-Value="editModel.JoinDate" class="form-control modern-input" disabled="@(!isEditMode)" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">Resign Date</label>
-                            <InputDate @bind-Value="editModel.ResignDate" class="form-control modern-input" disabled="@(!isEditMode)" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">Basic Salary</label>
-                            <InputNumber @bind-Value="editModel.BasicSalary" class="form-control modern-input" disabled="@(!isEditMode)" />
-                        </div>
+                <div class="sec">
+                    <h3>Employment details</h3>
+                    <div class="grid">
+                        <label>
+                            Join date
+                            <InputDate @bind-Value="editModel.JoinDate" class="in" readonly="@(!isEditMode)" />
+                        </label>
+                        <label>
+                            Resign date
+                            <InputDate @bind-Value="editModel.ResignDate" class="in" readonly="@(!isEditMode)" />
+                        </label>
+                        <label>
+                            Basic salary (LKR)
+                            <InputNumber @bind-Value="editModel.BasicSalary" class="in" readonly="@(!isEditMode)" />
+                        </label>
                     </div>
+                </div>
 
-                    <hr class="text-muted opacity-25 my-4" />
-
-                    <h6 class="text-muted fw-semibold mb-3 small text-uppercase letter-spacing-1">Banking Details</h6>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">Bank Code</label>
-                            <InputText @bind-Value="editModel.BankCode" class="form-control modern-input" disabled="@(!isEditMode)" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-medium">Account Number</label>
-                            <InputText @bind-Value="editModel.BankAccountNumber" class="form-control modern-input" disabled="@(!isEditMode)" />
-                        </div>
+                <div class="sec">
+                    <h3>Banking details</h3>
+                    <div class="grid">
+                        <label>
+                            Bank code
+                            <InputText @bind-Value="editModel.BankCode" class="in" readonly="@(!isEditMode)" />
+                        </label>
+                        <label>
+                            Account number
+                            <InputText @bind-Value="editModel.BankAccountNumber" class="in" readonly="@(!isEditMode)" />
+                        </label>
                     </div>
-
-                </EditForm>
-            </div>
-        </div>
-    </div>
+                </div>
+            </EditForm>
+        }
+    </section>
 </div>
 
 @code {
