@@ -15,7 +15,12 @@ public class Employee
     [Column(TypeName = "decimal(18, 2)")]
     public decimal BasicSalary { get; set; }
 
-    public string DepartmentCode { get; set; } = string.Empty;
     public string BankCode { get; set; } = string.Empty;
     public string BankAccountNumber { get; set; } = string.Empty;
+
+    [MaxLength(10)]
+    public string DepartmentCode { get; set; } = string.Empty;
+
+    [ForeignKey("DepartmentCode")]
+    public Department? Department { get; set; } // Adds the strict relationship
 }

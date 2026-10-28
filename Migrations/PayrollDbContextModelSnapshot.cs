@@ -50,6 +50,21 @@ namespace PayrollDemo.Migrations
                     b.ToTable("Companies");
                 });
 
+            modelBuilder.Entity("PayrollDemo.Core.Entities.Department", b =>
+                {
+                    b.Property<string>("DepCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("DepName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("DepCode");
+
+                    b.ToTable("Departments");
+                });
+
             modelBuilder.Entity("PayrollDemo.Core.Entities.Employee", b =>
                 {
                     b.Property<string>("EmpNo")
@@ -68,7 +83,8 @@ namespace PayrollDemo.Migrations
 
                     b.Property<string>("DepartmentCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -89,6 +105,8 @@ namespace PayrollDemo.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("EmpNo");
+
+                    b.HasIndex("DepartmentCode");
 
                     b.ToTable("Employees");
                 });
@@ -112,6 +130,22 @@ namespace PayrollDemo.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("PayrollDemo.Core.Entities.Employee", b =>
+                {
+                    b.HasOne("PayrollDemo.Core.Entities.Department", "Department")
+                        .WithMany("Employees")
+                        .HasForeignKey("DepartmentCode")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("PayrollDemo.Core.Entities.Department", b =>
+                {
+                    b.Navigation("Employees");
                 });
 #pragma warning restore 612, 618
         }

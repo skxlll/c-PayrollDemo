@@ -1,0 +1,203 @@
+@page "/departments"
+@using PayrollDemo.Core.Entities
+@using PayrollDemo.Core.Interfaces
+@using Microsoft.EntityFrameworkCore
+@inject IDepartmentService DepartmentService
+@inject NavigationManager NavManager
+@rendermode InteractiveServer
+
+<PageTitle>Finac | Department Master</PageTitle>
+
+<div class="bar glass">
+    <button type="button" class="btn pri" @onclick="HandleAdd" disabled="@isEditMode">
+        + Add department
+    </button>
+    <button type="button" class="btn" @onclick="HandleEdit" disabled="@(isEditMode || selectedDepartment == null)">
+        ✎ Edit
+    </button>
+    <button type="button" class="btn dng" @onclick="HandleDelete" disabled="@(isEditMode || selectedDepartment == null)">
+        Delete
+    </button>
+
+    <span class="sp"></span>
+
+    <button type="button" class="btn" @onclick="HandleUndo" disabled="@(!isEditMode)">
+        Undo
+    </button>
+    <button type="button" class="btn pri" @onclick="HandleSave" disabled="@(!isEditMode)">
+        Save changes
+    </button>
+    <button type="button" class="btn" @onclick="HandleClose" disabled="@isEditMode">
+        Close
+    </button>
+</div>
+
+<div class="cols">
+    <!-- Left: Data List -->
+    <section class="list glass">
+        <h2>
+            Departments 
+            <span>@(FilteredDepartments?.Count() ?? 0) total</span>
+        </h2>
+        <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="11" cy="11" r="7"/>
+                <path d="m20 20-3.5-3.5"/>
+            </svg>
+            <input type="search" 
+                   placeholder="Search departments..." 
+                   value="@searchTerm"
+                   @oninput="@(e => searchTerm = e.Value?.ToString() ?? "")"
+                   disabled="@isEditMode" />
+        </div>
+        <div class="rows anim">
+            @if (departments == null)
+            {
+                <p style="padding: 16px; color: var(--mute);">Loading...</p>
+            }
+            else if (!FilteredDepartments!.Any())
+            {
+                <p style="padding: 16px; color: var(--mute);">No departments found.</p>
+            }
+            else
+            {
+                @foreach (var (dept, index) in FilteredDepartments!.Select((d, i) => (d, i)))
+                {
+                    var isSelected = selectedDepartment?.DepCode == dept.DepCode;
+                    <button type="button" 
+                            class="emp @(isSelected ? "on" : "")" 
+                            style="--i: @index;"
+                            @onclick="() => SelectDepartment(dept)" 
+                            disabled="@isEditMode">
+                        <span class="av" style="--h: @(((dept.DepCode?.GetHashCode() ?? 0) % 360 + 360) % 360)">
+                            @($"{dept.DepName?.FirstOrDefault()}".ToUpper())
+                        </span>
+                        <span>
+                            <b>@(string.IsNullOrWhiteSpace(dept.DepName) ? "New Department" : dept.DepName)</b>
+                            <small>Code: @dept.DepCode</small>
+                        </span>
+                    </button>
+                }
+            }
+        </div>
+    </section>
+
+    <!-- Right: Detail Panel -->
+    <section class="detail glass @(isEditMode ? "editing" : "")">
+        @if (selectedDepartment == null && !isAdding)
+        {
+            <p style="color: var(--mute); padding: 20px;">Select a department or add a new one.</p>
+        }
+        else
+        {
+            <div class="head">
+                <span class="av" style="--h: @(((editModel.DepCode?.GetHashCode() ?? 0) % 360 + 360) % 360)">
+                    @($"{editModel.DepName?.FirstOrDefault()}".ToUpper())
+                </span>
+                <div>
+                    <h1>@(string.IsNullOrWhiteSpace(editModel.DepName) ? (isAdding ? "New Department" : "Unnamed") : editModel.DepName)</h1>
+                    <p>Code: @(string.IsNullOrWhiteSpace(editModel.DepCode) ? "—" : editModel.DepCode)</p>
+                </div>
+            </div>
+
+            <EditForm Model="editModel">
+                <div class="sec">
+                    <h3>Department Details</h3>
+                    <div class="grid">
+                        <label>
+                            Department Code
+                            <InputText @bind-Value="editModel.DepCode" class="in" readonly="@(!isAdding)" maxlength="10" />
+                        </label>
+                        <label>
+                            Department Name
+                            <InputText @bind-Value="editModel.DepName" class="in" readonly="@(!isEditMode)" />
+                        </label>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    </section>
+</div>
+
+@code {
+    // Keep your exact existing C# @code block here. 
+    // Do not change any of your working backend logic!
+    private List<Department> departments = new();
+    private Department? selectedDepartment;
+    private Department editModel = new();
+    
+    private string searchTerm = "";
+    private bool isEditMode = false;
+    private bool isAdding = false;
+
+    private IEnumerable<Department> FilteredDepartments =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? departments
+            : departments.Where(d => d.DepCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                                     d.DepName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        departments = await DepartmentService.GetAllDepartmentsAsync();
+        if (departments.Any()) SelectDepartment(departments.First());
+    }
+
+    private void SelectDepartment(Department dept)
+    {
+        selectedDepartment = dept;
+        editModel = new Department { DepCode = dept.DepCode, DepName = dept.DepName };
+    }
+
+    private void HandleAdd()
+    {
+        isEditMode = true;
+        isAdding = true;
+        selectedDepartment = null;
+        editModel = new Department(); 
+    }
+
+    private void HandleEdit()
+    {
+        isEditMode = true;
+        isAdding = false;
+    }
+
+    private async Task HandleDelete()
+    {
+        if (selectedDepartment != null)
+        {
+            try 
+            {
+                await DepartmentService.DeleteDepartmentAsync(selectedDepartment.DepCode);
+                await LoadDataAsync();
+            }
+            catch (DbUpdateException) { }
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        string savedDepCode = editModel.DepCode;
+        if (isAdding) await DepartmentService.AddDepartmentAsync(editModel);
+        else await DepartmentService.UpdateDepartmentAsync(editModel);
+
+        isEditMode = false;
+        isAdding = false;
+        await LoadDataAsync();
+        
+        var deptToSelect = departments.FirstOrDefault(d => d.DepCode == savedDepCode);
+        if (deptToSelect != null) SelectDepartment(deptToSelect);
+    }
+
+    private void HandleUndo()
+    {
+        isEditMode = false;
+        isAdding = false;
+        if (selectedDepartment != null) SelectDepartment(selectedDepartment);
+        else if (departments.Any()) SelectDepartment(departments.First());
+    }
+
+    private void HandleClose() => NavManager.NavigateTo("/dashboard");
+}
