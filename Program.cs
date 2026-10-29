@@ -17,6 +17,7 @@ builder.Services.AddDbContext<PayrollDbContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
+builder.Services.AddScoped<ISalaryItemService, SalaryItemService>();
 
 var app = builder.Build();
 

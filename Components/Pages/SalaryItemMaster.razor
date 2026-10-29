@@ -1,0 +1,197 @@
+@page "/salaryitem"
+@using PayrollDemo.Core.Entities
+@using PayrollDemo.Core.Interfaces
+@using Microsoft.EntityFrameworkCore
+@inject ISalaryItemService SalaryItemService
+@inject NavigationManager NavManager
+@rendermode InteractiveServer
+
+<PageTitle>Finac | Salary Items</PageTitle>
+
+<div class="bar glass">
+    <button type="button" class="btn pri" @onclick="HandleAdd" disabled="@isEditMode">
+        + Add item
+    </button>
+    <button type="button" class="btn" @onclick="HandleEdit" disabled="@(isEditMode || selectedItem == null)">
+        ✎ Edit
+    </button>
+    <button type="button" class="btn dng" @onclick="HandleDelete" disabled="@(isEditMode || selectedItem == null)">
+        Delete
+    </button>
+
+    <span class="sp"></span>
+
+    <button type="button" class="btn" @onclick="HandleUndo" disabled="@(!isEditMode)">
+        Undo
+    </button>
+    <button type="button" class="btn pri" @onclick="HandleSave" disabled="@(!isEditMode)">
+        Save changes
+    </button>
+    <button type="button" class="btn" @onclick="HandleClose" disabled="@isEditMode">
+        Close
+    </button>
+</div>
+
+<div class="cols">
+    <!-- Left: Data List -->
+    <section class="list glass">
+        <h2>
+            Salary Items 
+            <span>@(FilteredItems?.Count() ?? 0) total</span>
+        </h2>
+        <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="11" cy="11" r="7"/>
+                <path d="m20 20-3.5-3.5"/>
+            </svg>
+            <input type="search" 
+                   placeholder="Search code or description..." 
+                   value="@searchTerm"
+                   @oninput="@(e => searchTerm = e.Value?.ToString() ?? "")"
+                   disabled="@isEditMode" />
+        </div>
+        <div class="rows anim">
+            @if (salaryItems == null)
+            {
+                <p style="padding: 16px; color: var(--mute);">Loading...</p>
+            }
+            else if (!FilteredItems!.Any())
+            {
+                <p style="padding: 16px; color: var(--mute);">No items found.</p>
+            }
+            else
+            {
+                @foreach (var (item, index) in FilteredItems!.Select((s, i) => (s, i)))
+                {
+                    var isSelected = selectedItem?.TxnCode == item.TxnCode;
+                    <button type="button" 
+                            class="emp @(isSelected ? "on" : "")" 
+                            style="--i: @index;"
+                            @onclick="() => SelectItem(item)" 
+                            disabled="@isEditMode">
+                        <span class="av" style="--h: @(((item.TxnCode?.GetHashCode() ?? 0) % 360 + 360) % 360)">
+                            @($"{item.Description?.FirstOrDefault()}".ToUpper())
+                        </span>
+                        <span>
+                            <b>@(string.IsNullOrWhiteSpace(item.Description) ? "New Item" : item.Description)</b>
+                            <small>Code: @item.TxnCode</small>
+                        </span>
+                    </button>
+                }
+            }
+        </div>
+    </section>
+
+    <!-- Right: Detail Panel -->
+    <section class="detail glass @(isEditMode ? "editing" : "")">
+        @if (selectedItem == null && !isAdding)
+        {
+            <p style="color: var(--mute); padding: 20px;">Select a salary item or add a new one.</p>
+        }
+        else
+        {
+            <div class="head">
+                <span class="av" style="--h: @(((editModel.TxnCode?.GetHashCode() ?? 0) % 360 + 360) % 360)">
+                    @($"{editModel.Description?.FirstOrDefault()}".ToUpper())
+                </span>
+                <div>
+                    <h1>@(string.IsNullOrWhiteSpace(editModel.Description) ? (isAdding ? "New Salary Item" : "Unnamed") : editModel.Description)</h1>
+                    <p>Transaction Code: @(string.IsNullOrWhiteSpace(editModel.TxnCode) ? "—" : editModel.TxnCode)</p>
+                </div>
+            </div>
+
+            <EditForm Model="editModel">
+                <div class="sec">
+                    <h3>Item Details</h3>
+                    <div class="grid">
+                        <label>
+                            Transaction Code (Max 10)
+                            <InputText @bind-Value="editModel.TxnCode" class="in" readonly="@(!isAdding)" maxlength="10" />
+                        </label>
+                        <label style="grid-column: span 2;">
+                            Description (Max 150)
+                            <InputText @bind-Value="editModel.Description" class="in" readonly="@(!isEditMode)" maxlength="150" />
+                        </label>
+                    </div>
+                </div>
+            </EditForm>
+        }
+    </section>
+</div>
+
+@code {
+    private List<SalaryItem> salaryItems = new();
+    private SalaryItem? selectedItem;
+    private SalaryItem editModel = new();
+    
+    private string searchTerm = "";
+    private bool isEditMode = false;
+    private bool isAdding = false;
+
+    private IEnumerable<SalaryItem> FilteredItems =>
+        string.IsNullOrWhiteSpace(searchTerm)
+            ? salaryItems
+            : salaryItems.Where(s => s.TxnCode.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || 
+                                     s.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        salaryItems = await SalaryItemService.GetAllSalaryItemsAsync();
+        if (salaryItems.Any()) SelectItem(salaryItems.First());
+    }
+
+    private void SelectItem(SalaryItem item)
+    {
+        selectedItem = item;
+        editModel = new SalaryItem { TxnCode = item.TxnCode, Description = item.Description };
+    }
+
+    private void HandleAdd()
+    {
+        isEditMode = true;
+        isAdding = true;
+        selectedItem = null;
+        editModel = new SalaryItem(); 
+    }
+
+    private void HandleEdit()
+    {
+        isEditMode = true;
+        isAdding = false;
+    }
+
+    private async Task HandleDelete()
+    {
+        if (selectedItem != null)
+        {
+            await SalaryItemService.DeleteSalaryItemAsync(selectedItem.TxnCode);
+            await LoadDataAsync();
+        }
+    }
+
+    private async Task HandleSave()
+    {
+        string savedTxnCode = editModel.TxnCode;
+        if (isAdding) await SalaryItemService.AddSalaryItemAsync(editModel);
+        else await SalaryItemService.UpdateSalaryItemAsync(editModel);
+
+        isEditMode = false;
+        isAdding = false;
+        await LoadDataAsync();
+        
+        var itemToSelect = salaryItems.FirstOrDefault(s => s.TxnCode == savedTxnCode);
+        if (itemToSelect != null) SelectItem(itemToSelect);
+    }
+
+    private void HandleUndo()
+    {
+        isEditMode = false;
+        isAdding = false;
+        if (selectedItem != null) SelectItem(selectedItem);
+        else if (salaryItems.Any()) SelectItem(salaryItems.First());
+    }
+
+    private void HandleClose() => NavManager.NavigateTo("/dashboard");
+}

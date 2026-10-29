@@ -111,6 +111,22 @@ namespace PayrollDemo.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("PayrollDemo.Core.Entities.SalaryItem", b =>
+                {
+                    b.Property<string>("TxnCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("TxnCode");
+
+                    b.ToTable("SalaryItems");
+                });
+
             modelBuilder.Entity("PayrollDemo.Core.Entities.User", b =>
                 {
                     b.Property<int>("Id")

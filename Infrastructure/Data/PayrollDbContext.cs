@@ -24,4 +24,8 @@ public class PayrollDbContext : DbContext
             .HasForeignKey(e => e.DepartmentCode)
             .OnDelete(DeleteBehavior.Restrict);
     }
+
+
+    public DbSet<SalaryItem> SalaryItems { get; set; }
+
 }
